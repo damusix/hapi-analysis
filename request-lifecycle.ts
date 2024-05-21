@@ -9,8 +9,33 @@ import {
     returnErrorOn,
     throwErrorOn,
     log,
-    ignoreExt
+    ignoreExt,
+    inspectAuthScheme,
+    inspectSrvHooks,
+    inspectReqHooks,
+    inspectResponses,
+    inspectRoutes
 } from './helpers';
+
+given.always('A server is prepared', () => {
+
+    it('adds a custom auth scheme', () => {
+
+        inspectAuthScheme(server);
+    });
+
+    it('adds hooks', () => {
+
+        inspectSrvHooks(server);
+        inspectReqHooks(server);
+        inspectResponses(server);
+    });
+
+    it('adds routes', () => {
+
+        inspectRoutes(server);
+    });
+});
 
 
 given('Pre hooks', async () => {
@@ -295,5 +320,3 @@ given('Post hooks', () => {
         log.step('server stopped');
     });
 });
-
-rungivens();

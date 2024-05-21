@@ -49,6 +49,8 @@ export const failAction: Hapi.Lifecycle.FailAction = async (request, h, err) => 
         log.err('Response is a boom');
 
         log.bulletFail({
+            method: request.method,
+            path: request.path,
             msg: boom.message,
             code: boom.output.statusCode,
             isServer: boom.isServer,

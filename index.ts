@@ -1,4 +1,4 @@
-import './request-lifecycle';
+import './full-request';
 
 
 rungivens();

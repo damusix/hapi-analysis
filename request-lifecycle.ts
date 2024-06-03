@@ -130,6 +130,13 @@ given('Route with auth', async () => {
             log.respond(res.result!);
         });
     }
+
+    it('not found', async () => {
+
+        const res = await server.inject({ method: 'GET', url: '/not-exists' });
+
+        log.respond(res.result!);
+    });
 })
 
 given('Route with auth and validation', async () => {

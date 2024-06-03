@@ -24,12 +24,60 @@ export const inspectRoutes = (server: Hapi.Server) => {
      * Auth route
      */
     server.route({
-        method: 'GET',
+        method: ['GET', 'POST'],
         path: '/auth',
         handler,
         options: {
             auth: {
                 strategy: 'test',
+            }
+        }
+    });
+
+    /**
+     * Auth route
+     */
+    server.route({
+        method: 'POST',
+        path: '/full-request/{param?}',
+        handler,
+        options: {
+            auth: {
+                strategy: 'test',
+                payload: 'required'
+            },
+            validate: {
+                payload: Joi.object({
+                    lastName: Joi.string().required(),
+                }),
+                query: Joi.object({
+                    firstName: Joi.string().required(),
+                }),
+                params: Joi.object({
+                    param: Joi.string().required(),
+                }),
+                state: Joi.object({
+                    sid: Joi.string().required(),
+                }),
+                headers: Joi.object({
+                    cookie: Joi.string().required(),
+                }).unknown(true),
+            },
+            pre: [
+                {
+                    method: () => 'something',
+                    assign: 'pre1'
+                },
+                {
+                    method: () => 'anotherthing',
+                    assign: 'pre2'
+                },
+            ],
+            response: {
+                schema: Joi.object({
+                    firstName: Joi.string().required(),
+                    lastName: Joi.string().required(),
+                })
             }
         }
     });

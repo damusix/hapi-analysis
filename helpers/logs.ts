@@ -4,7 +4,7 @@ import Hapi from '@hapi/hapi';
 
 import { store } from '.';
 
-export const { red, blue, magenta, yellow, green, gray, rgb } = C;
+export const { red, blue, magenta, yellow, green, gray, rgb, italic } = C;
 export const w = console.log;
 
 const tab = (n = 1) => new Array(n * 3 - 1).fill(' ').join('');
@@ -150,6 +150,14 @@ export const _progress = {
         }
     },
 
+    comments(msgs: string[], t: number = 2) {
+
+        for (const msg of msgs) {
+
+            w(tab(t), space(), gray(`-`), rgb(181, 209, 165)(italic(msg)));
+        }
+    },
+
     respond(obj: { [key: string]: any }) {
 
         this.bulletSuccess(obj, 'response');
@@ -198,5 +206,10 @@ export const log = {
     /**
      * Used to log a response
      */
-    respond: _progress.respond
+    respond: _progress.respond,
+
+    /**
+     * Used to log comments
+     */
+    comments: _progress.comments,
 }

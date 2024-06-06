@@ -15,40 +15,9 @@ import {
     inspectReqHooks,
     inspectResponses,
     inspectRoutes
-} from './helpers';
+} from '../helpers';
 
-given.always('A server is prepared', () => {
-
-    it('adds a custom auth scheme', () => {
-
-        inspectAuthScheme(server);
-    });
-
-    it('adds hooks', () => {
-
-        inspectSrvHooks(server);
-        inspectReqHooks(server);
-        inspectResponses(server);
-    });
-
-    it('adds routes', () => {
-
-        inspectRoutes(server);
-    });
-});
-
-
-given('Pre hooks', async () => {
-
-    it('starts the server', async () => {
-
-        await server.start();
-
-        log.step('server started at', server.info.uri);
-    });
-});
-
-given('Route with no auth', async () => {
+given.skip('Route with no auth', async () => {
 
     beforeEach(async () => {
 
@@ -65,9 +34,18 @@ given('Route with no auth', async () => {
         log.respond(res.result!);
     });
 
-    const _exts1 = Array.from(reqExts).insert(2, '_handler' as any)
+    const _exts1 = Array
+        .from(reqExts)
+        ._insert(2, '_handler' as any)
+        ._remove('onCredentials')
 
     for (const ext of _exts1) {
+
+        // onCredentials is not called on routes without auth
+        // so theres no use testing it
+        if (ext === 'onCredentials') {
+            continue;
+        }
 
         it(`returns error on ${ext}`, async () => {
 
@@ -81,16 +59,6 @@ given('Route with no auth', async () => {
 });
 
 given('Route with auth', async () => {
-
-    before(async () => {
-
-        // ignoreExt.add('onRequest');
-        // ignoreExt.add('onPreHandler');
-        // ignoreExt.add('_handler');
-        // ignoreExt.add('onPostHandler');
-        // ignoreExt.add('onPreResponse');
-        // ignoreExt.add('onPostResponse');
-    });
 
     after(async () => {
 
@@ -112,12 +80,16 @@ given('Route with auth', async () => {
 
     it('doesnt throw errors on route with auth', async () => {
 
-        const res = await server.inject({ method: 'GET', url: '/auth' });
+        const res = await server.inject({ method: 'POST', url: '/auth', payload: {} });
 
         log.respond(res.result!);
     });
 
-    const _exts2 = Array.from(reqExts).splice(1, 3);
+    const _exts2 = Array
+        .from(reqExts)
+        ._pick('onPreAuth', 'onCredentials', 'onPostAuth')
+        ._insert(1, '_authenticate' as any)
+        ._insert(2, '_authenticatePayload' as any)
 
     for (const ext of _exts2) {
 
@@ -125,19 +97,37 @@ given('Route with auth', async () => {
 
             returnErrorOn.add(ext);
 
-            const res = await server.inject({ method: 'GET', url: '/auth' });
+            const res = await server.inject({ method: 'POST', url: '/auth', payload: {} });
 
             log.respond(res.result!);
         });
     }
 
-    it('not found', async () => {
+});
+
+given('Special cases', async () => {
+
+    it('is not found', async () => {
 
         const res = await server.inject({ method: 'GET', url: '/not-exists' });
 
         log.respond(res.result!);
     });
-})
+
+    it('returns options', async () => {
+
+        const res = await server.inject({
+            method: 'OPTIONS',
+            url: '/auth',
+            headers: {
+                'Access-Control-Request-Method': 'POST',
+                'Access-Control-Request-Headers': 'content-type'
+            }
+        });
+
+        log.respond(res.result!);
+    });
+});
 
 given('Route with auth and validation', async () => {
 
@@ -314,16 +304,4 @@ given('Route with auth and validation', async () => {
         log.respond(res.result!);
     });
 
-});
-
-// given('R')
-
-given('Post hooks', () => {
-
-    it('stops the server', async () => {
-
-        await server.stop();
-
-        log.step('server stopped');
-    });
 });

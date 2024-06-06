@@ -1,20 +1,22 @@
 import Hoek from '@hapi/hoek'
-import { _progress, store } from '.';
+import { _progress, gray, italic, stepper, store } from '.';
 
 const _global = globalThis as any;
 
-type ExFunc = () => void | Promise<void>;
+
+type TddFunc = () => void | Promise<void>;
+
 
 /**
  * Used to store an given's test function
  */
-class ExStoreTest {
+class TddStoreTest {
     skip = false;
     only = false;
     always = false;
-    func: ExFunc;
+    func: TddFunc;
 
-    constructor (func: ExFunc = Hoek.ignore) {
+    constructor (func: TddFunc = Hoek.ignore) {
 
         this.func = func;
     }
@@ -26,22 +28,22 @@ class ExStoreTest {
  * An given is a group of tests that are used to inspect
  * and log the behavior of the hapi server.
  */
-class ExInstance {
+class TddInstance {
 
-    func: ExFunc;
+    func: TddFunc;
     skip = false;
     only = false;
     always = false;
 
-    before: Set<ExFunc> = new Set();
-    after: Set<ExFunc> = new Set();
+    before: Set<TddFunc> = new Set();
+    after: Set<TddFunc> = new Set();
 
-    beforeEach: Set<ExFunc> = new Set();
-    afterEach: Set<ExFunc> = new Set();
+    beforeEach: Set<TddFunc> = new Set();
+    afterEach: Set<TddFunc> = new Set();
 
-    tests: Map<string, ExStoreTest> = new Map();
+    tests: Map<string, TddStoreTest> = new Map();
 
-    constructor (func: ExFunc = Hoek.ignore) {
+    constructor (func: TddFunc = Hoek.ignore) {
 
         this.func = func;
     }
@@ -53,17 +55,17 @@ class ExInstance {
 
 
 interface it {
-    (txt: string, func: ExStoreTest['func']): void;
-    skip: (txt: string, func: ExStoreTest['func']) => void;
-    only: (txt: string, func: ExStoreTest['func']) => void;
-    always: (txt: string, func: ExStoreTest['func']) => void;
+    (txt: string, func: TddStoreTest['func']): void;
+    skip: (txt: string, func: TddStoreTest['func']) => void;
+    only: (txt: string, func: TddStoreTest['func']) => void;
+    always: (txt: string, func: TddStoreTest['func']) => void;
 }
 
 interface given {
-    (txt: string, func: ExFunc): void;
-    skip: (txt: string, func: ExFunc) => void;
-    only: (txt: string, func: ExFunc) => void;
-    always: (txt: string, func: ExFunc) => void;
+    (txt: string, func: TddFunc): void;
+    skip: (txt: string, func: TddFunc) => void;
+    only: (txt: string, func: TddFunc) => void;
+    always: (txt: string, func: TddFunc) => void;
 }
 
 declare global {
@@ -72,10 +74,10 @@ declare global {
     const given: given;
     const rungivens: () => Promise<void>;
 
-    const before: (func: ExFunc) => void;
-    const after: (func: ExFunc) => void;
-    const beforeEach: (func: ExFunc) => void;
-    const afterEach: (func: ExFunc) => void;
+    const before: (func: TddFunc) => void;
+    const after: (func: TddFunc) => void;
+    const beforeEach: (func: TddFunc) => void;
+    const afterEach: (func: TddFunc) => void;
 
     namespace NodeJS {
 
@@ -83,10 +85,10 @@ declare global {
             it: it;
             given: given;
             rungivens: () => Promise<void>;
-            before: (func: ExFunc) => void;
-            after: (func: ExFunc) => void;
-            beforeEach: (func: ExFunc) => void;
-            afterEach: (func: ExFunc) => void;
+            before: (func: TddFunc) => void;
+            after: (func: TddFunc) => void;
+            beforeEach: (func: TddFunc) => void;
+            afterEach: (func: TddFunc) => void;
         }
     }
 }
@@ -118,32 +120,32 @@ resetGlobals();
 /**
  * Used to store given functions
  */
-const _givens = new Map<string, ExInstance>();
+const _givens = new Map<string, TddInstance>();
 
 function given (txt: string, func: () => void | Promise<void>) {
 
-    _givens.set(txt, new ExInstance(func));
+    _givens.set(txt, new TddInstance(func));
 }
 
 given.skip = async (txt: string) => {
 
-    const instance = new ExInstance();
+    const instance = new TddInstance();
     instance.skip = true;
 
     _givens.set(txt, instance);
 }
 
-given.only = async (txt: string, func: ExFunc) => {
+given.only = async (txt: string, func: TddFunc) => {
 
-    const instance = new ExInstance(func);
+    const instance = new TddInstance(func);
     instance.only = true;
 
     _givens.set(txt, instance);
 }
 
-given.always = async (txt: string, func: ExFunc) => {
+given.always = async (txt: string, func: TddFunc) => {
 
-    const instance = new ExInstance(func);
+    const instance = new TddInstance(func);
     instance.always = true;
 
     _givens.set(txt, instance);
@@ -154,7 +156,7 @@ given.always = async (txt: string, func: ExFunc) => {
  *
  * Used to run the before, after, beforeEach, and afterEach
  */
-const runEachFunc = async (set: Set<ExFunc>) => {
+const runEachFunc = async (set: Set<TddFunc>) => {
 
     for (const func of set) {
 
@@ -188,7 +190,9 @@ async function rungivens () {
             .map(([txt]) => txt)
     )
 
+
     for (const [txt, instance] of _givens) {
+
 
         // track the current test number
         store.testNo = 0;
@@ -224,32 +228,32 @@ async function rungivens () {
         /**
          * This function is used to store test functions
          */
-        const it = function (txt: string, func: ExStoreTest['func']) {
+        const it = function (txt: string, func: TddStoreTest['func']) {
 
-            const instance = new ExStoreTest(func);
+            const instance = new TddStoreTest(func);
 
             steps.set(txt, instance);
         }
 
         it.skip = async (txt: string) => {
 
-            const instance = new ExStoreTest();
+            const instance = new TddStoreTest();
             instance.skip = true;
 
             steps.set(txt, instance);
         }
 
-        it.only = async (txt: string, func: ExStoreTest['func']) => {
+        it.only = async (txt: string, func: TddStoreTest['func']) => {
 
-            const instance = new ExStoreTest(func);
+            const instance = new TddStoreTest(func);
             instance.only = true;
 
             steps.set(txt, instance);
         }
 
-        it.always = async (txt: string, func: ExStoreTest['func']) => {
+        it.always = async (txt: string, func: TddStoreTest['func']) => {
 
-            const instance = new ExStoreTest(func);
+            const instance = new TddStoreTest(func);
             instance.always = true;
 
             steps.set(txt, instance);
@@ -261,22 +265,22 @@ async function rungivens () {
          */
 
 
-        const before = async (func: ExFunc) => {
+        const before = async (func: TddFunc) => {
 
             instance.before.add(func);
         };
 
-        const after = async (func: ExFunc) => {
+        const after = async (func: TddFunc) => {
 
             instance.after.add(func);
         };
 
-        const beforeEach = async (func: ExFunc) => {
+        const beforeEach = async (func: TddFunc) => {
 
             instance.beforeEach.add(func);
         };
 
-        const afterEach = async (func: ExFunc) => {
+        const afterEach = async (func: TddFunc) => {
 
             instance.afterEach.add(func);
         };
@@ -290,6 +294,7 @@ async function rungivens () {
         _global.afterEach = afterEach;
         _global.it = it;
 
+
         /**
          * Run the given function
          */
@@ -301,6 +306,8 @@ async function rungivens () {
          * Run the before functions
          */
         await runEachFunc(instance.before);
+
+
 
         /**
          * Used to store the test functions that are marked as only
@@ -320,7 +327,9 @@ async function rungivens () {
                 .map(([txt]) => txt)
         )
 
+
         for (const [txt, _test] of steps) {
+
 
             /**
              * If there are test functions that are marked as only
@@ -353,6 +362,13 @@ async function rungivens () {
                 continue;
             }
 
+            // Wait for the user to request next step
+            // if the --step flag is present
+            await stepper.next(
+                'Next step: ' +
+                gray(italic(txt))
+            );
+
             // log the test number
             _progress.test(txt);
 
@@ -366,10 +382,18 @@ async function rungivens () {
              */
             await func();
 
+            // Finish pending requests so they do not interfere with
+            // the next test because Hapi continues to process requests
+            // after the previous request has been transmitted.
+            await stepper.finishRequests();
+
             /**
              * Run the afterEach functions
              */
             await runEachFunc(instance.afterEach);
+
+            stepper.emit('next-scenario');
+
         }
 
         /**
@@ -382,6 +406,9 @@ async function rungivens () {
          */
         resetGlobals();
     }
+
+
+    await stepper.done();
 }
 
 

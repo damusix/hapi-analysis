@@ -1,5 +1,8 @@
 import Hapi from '@hapi/hapi'
 
+type AnyLifecycleMethod = Hapi.Lifecycle.Method<any, any> | null
+type AnyServerExtMethod = Hapi.ServerExtPointFunction<any> | null
+
 export const store = {
 
     /**
@@ -28,10 +31,10 @@ export const store = {
      * Can be set to a function that will be called when
      * the server executes the corresponding hook
      */
-    onPreStart: null as Hapi.ServerExtPointFunction | null,
-    onPostStart: null as Hapi.ServerExtPointFunction | null,
-    onPreStop: null as Hapi.ServerExtPointFunction | null,
-    onPostStop: null as Hapi.ServerExtPointFunction | null,
+    onPreStart: null as AnyServerExtMethod,
+    onPostStart: null as AnyServerExtMethod,
+    onPreStop: null as AnyServerExtMethod,
+    onPostStop: null as AnyServerExtMethod,
 
     /**
      * Request extension points
@@ -39,14 +42,14 @@ export const store = {
      * Can be set to a function that will be called when
      * the request executes the corresponding hook
      */
-    onRequest: null as Hapi.Lifecycle.Method | null,
-    onPreAuth: null as Hapi.Lifecycle.Method | null,
-    onCredentials: null as Hapi.Lifecycle.Method | null,
-    onPostAuth: null as Hapi.Lifecycle.Method | null,
-    onPreHandler: null as Hapi.Lifecycle.Method | null,
-    onPostHandler: null as Hapi.Lifecycle.Method | null,
-    onPreResponse: null as Hapi.Lifecycle.Method | null,
-    onPostResponse: null as Hapi.Lifecycle.Method | null,
+    onRequest: null as AnyLifecycleMethod,
+    onPreAuth: null as AnyLifecycleMethod,
+    onCredentials: null as AnyLifecycleMethod,
+    onPostAuth: null as AnyLifecycleMethod,
+    onPreHandler: null as AnyLifecycleMethod,
+    onPostHandler: null as AnyLifecycleMethod,
+    onPreResponse: null as AnyLifecycleMethod,
+    onPostResponse: null as AnyLifecycleMethod,
 
     /**
      * Custom extension points
@@ -54,9 +57,9 @@ export const store = {
      * Can be set to a function that will be called when
      * the server executes the corresponding function
      */
-    _handler: null as Hapi.Lifecycle.Method | null,
-    _authenticate: null as Hapi.Lifecycle.Method | null,
-    _authenticatePayload: null as Hapi.Lifecycle.Method | null,
+    _handler: null as AnyLifecycleMethod,
+    _authenticate: null as AnyLifecycleMethod,
+    _authenticatePayload: null as AnyLifecycleMethod,
 
     /**
      * Route extension points
@@ -65,13 +68,13 @@ export const store = {
      * the route executes the corresponding function
      */
     routeExt: {
-        onPreAuth: null as Hapi.Lifecycle.Method | null,
-        onCredentials: null as Hapi.Lifecycle.Method | null,
-        onPostAuth: null as Hapi.Lifecycle.Method | null,
-        onPreHandler: null as Hapi.Lifecycle.Method | null,
-        onPostHandler: null as Hapi.Lifecycle.Method | null,
-        onPreResponse: null as Hapi.Lifecycle.Method | null,
-        onPostResponse: null as Hapi.Lifecycle.Method | null,
+        onPreAuth: null as AnyLifecycleMethod,
+        onCredentials: null as AnyLifecycleMethod,
+        onPostAuth: null as AnyLifecycleMethod,
+        onPreHandler: null as AnyLifecycleMethod,
+        onPostHandler: null as AnyLifecycleMethod,
+        onPreResponse: null as AnyLifecycleMethod,
+        onPostResponse: null as AnyLifecycleMethod,
     },
 
 

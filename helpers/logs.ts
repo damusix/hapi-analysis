@@ -2,15 +2,18 @@ import C from 'chalk';
 import { F } from 'ts-toolbelt';
 import Hapi from '@hapi/hapi';
 
-import { store } from '.';
+import { objHasAtleastOneKey, store } from '.';
 
 export const { red, blue, magenta, yellow, green, gray, rgb, italic } = C;
-export const w = console.log;
 
 const tab = (n = 1) => new Array(n * 3 - 1).fill(' ').join('');
 
 const n = () => `${store.stepNo}.`.padEnd(4);
 const space = (str: string = ' ') => str.padEnd(4);
+const startTime = +new Date();
+const time = () => gray(((+new Date() - startTime)/1000) + 's');
+
+export const w = console.log;
 
 export const _progress = {
 
@@ -46,13 +49,13 @@ export const _progress = {
     srvExt(ext: Hapi.ServerExtType, ...args: any[]) {
 
         store.stepNo++;
-        w(tab(2), n(), magenta(`[ext]`), ext, ...args);
+        w(tab(2), n(), magenta(`[ext]`), ext, ...args, time());
     },
 
     reqExt(ext: Hapi.ServerRequestExtType, ...args: any[]) {
 
         store.stepNo++;
-        w(tab(2), n(), yellow(`[ext]`), ext, ...args);
+        w(tab(2), n(), yellow(`[ext]`), ext, ...args, time());
     },
 
     /**
@@ -60,10 +63,25 @@ export const _progress = {
      * progress of the test.
      */
 
+    instruct(txt: string) {
+
+        w(gray(`[instructions]`), txt);
+    },
+
+    badUsage(txt: string) {
+
+        w(red(`[usage]`), txt);
+    },
+
+    pause(txt: string) {
+
+        w(tab(), rgb(191, 67, 33)(`[pause]`), txt);
+    },
+
     step(...args: Parameters<typeof w>) {
 
         store.stepNo++;
-        w(tab(2), n(), green(`[step]`), ...args);
+        w(tab(2), n(), green(`[step]`), ...args, time());
     },
 
     skip(...args: Parameters<typeof w>) {
@@ -80,13 +98,13 @@ export const _progress = {
     err(...args: Parameters<typeof w>) {
 
         store.stepNo++;
-        w(tab(2), n(), red(`[err]`), ...args);
+        w(tab(2), n(), red(`[err]`), ...args, time());
     },
 
     event(name: string, tags: string[] = [], args: any = {}) {
 
         store.stepNo++;
-        w(tab(2), n(), blue(`[event]`), name, tags, args);
+        w(tab(2), n(), blue(`[event]`), name, tags, args, time());
     },
 
     log(...args: Parameters<typeof w>) {
@@ -100,7 +118,7 @@ export const _progress = {
 
             if (msg) {
 
-                w(tab(2), space('--'), colorFn(`[${msg}]`));
+                w(tab(2), space('--'), colorFn(`[${msg}]`), time());
             }
 
             if (!obj) {
@@ -130,7 +148,22 @@ export const _progress = {
                     const isArr = Array.isArray(val);
 
                     if (isObj) {
-                        val = gray('{...}');
+
+                        const hasKeys = objHasAtleastOneKey(val);
+
+                        let msg = '{...}';
+
+                        if (!hasKeys) {
+
+                            msg = '{}';
+
+                            if (val === null) {
+
+                                msg = yellow('null');
+                            }
+                        }
+
+                        val = gray(msg);
                     }
 
                     if (isArr) {
@@ -160,11 +193,26 @@ export const _progress = {
 
     respond(obj: { [key: string]: any }) {
 
-        this.bulletSuccess(obj, 'response');
+        this.bulletSuccess(obj, 'response transmitted', time());
     },
 };
 
 export const log = {
+
+    /**
+     * Used to instruct the developer on what to do
+     */
+    instruct: _progress.instruct,
+
+    /**
+     * Used to log bad usage
+     */
+    badUsage: _progress.badUsage,
+
+    /**
+     * Used to pause the test
+     */
+    pause: _progress.pause,
 
     /**
      * Used to log the progress of the givens and throughout

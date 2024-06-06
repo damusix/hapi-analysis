@@ -5,46 +5,15 @@ import {
     reqExts,
     store,
     returnErrorOn,
-    diffJson,
     log,
     ignoreExt,
     inspectAuthScheme,
     inspectSrvHooks,
     inspectReqHooks,
     inspectResponses,
-    inspectRoutes
-} from './helpers';
-
-given.always('A server is prepared', () => {
-
-    it('adds a custom auth scheme', () => {
-
-        inspectAuthScheme(server);
-    });
-
-    it('adds hooks', () => {
-
-        inspectSrvHooks(server);
-        inspectReqHooks(server);
-        inspectResponses(server);
-    });
-
-    it('adds routes', () => {
-
-        inspectRoutes(server);
-    });
-});
-
-
-given('Pre hooks', async () => {
-
-    it('starts the server', async () => {
-
-        await server.start();
-
-        log.step('server started at', server.info.uri);
-    });
-});
+    inspectRoutes,
+    stepper
+} from '../helpers';
 
 given('Route with auth', async () => {
 
@@ -77,43 +46,49 @@ given('Route with auth', async () => {
             };
         }
 
-        const logStateOfRequest: (step: keyof typeof store, txt: string | string[]) => Lifecycle.Method = (step, msg) => (req, h) => {
+        const logStateOfRequest: (
+            step: keyof typeof store,
+            txt: string | string[]
+        ) => Lifecycle.Method = (step, msg) => (
 
-            msg = Array.isArray(msg) ? msg : [msg];
+            async (req, h) => {
 
-            log.comments(msg);
+                msg = Array.isArray(msg) ? msg : [msg];
 
-            const thisInfo = {
-                'req.route.method': req.route.method,
-                'req.route.path': req.route.path,
-                'req.url.pathname': req.url.pathname,
-                'req.params': req.params,
-                'req.query': req.query,
-                'req.payload': req.payload,
-                'req.headers': req.headers,
-                'req.state': req.state,
-                'req.auth': req.auth,
-                'req.pre': req.pre,
-                'req.response': extractResponse(req as any),
-            };
+                log.comments(msg);
 
-            log.bulletInfo(thisInfo);
+                const thisInfo = {
+                    'req.route.method': req.route.method,
+                    'req.route.path': req.route.path,
+                    'req.url.pathname': req.url.pathname,
+                    'req.params': req.params,
+                    'req.query': req.query,
+                    'req.payload': req.payload,
+                    'req.headers': req.headers,
+                    'req.state': req.state,
+                    'req.auth': req.auth,
+                    'req.pre': req.pre,
+                    'req.response': extractResponse(req as any),
+                };
 
-            if (step === '_authenticate') {
+                log.bulletInfo(thisInfo);
 
-                return h.authenticated(store.authArgument!);
-            }
+                if (step === '_authenticate') {
 
-            if (step === '_handler') {
-
-                return {
-                    firstName: req.query.firstName,
-                    lastName: (req.payload as any).lastName
+                    return h.authenticated(store.authArgument!);
                 }
-            }
 
-            return h.continue;
-        }
+                if (step === '_handler') {
+
+                    return {
+                        firstName: req.query.firstName,
+                        lastName: (req.payload as any).lastName
+                    }
+                }
+
+                return h.continue;
+            }
+        );
 
         store.onRequest = logStateOfRequest(
             'onRequest',
@@ -224,17 +199,4 @@ given('Route with auth', async () => {
         log.respond(res.result!);
     });
 
-})
-
-
-// given('R')
-
-given('Post hooks', () => {
-
-    it('stops the server', async () => {
-
-        await server.stop();
-
-        log.step('server stopped');
-    });
 });

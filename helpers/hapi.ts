@@ -7,6 +7,7 @@ import {
     gray,
     store,
     _progress,
+    stepper,
 } from '.';
 
 type HookToExtTypes = (
@@ -34,34 +35,61 @@ export const ignoreExt: Set<HookToExtTypes> = new Set();
  * Generic fail action for the server
  * Logs and returns the error
  */
-export const failAction: Hapi.Lifecycle.FailAction = async (request, h, err) => {
+export const mkFailAction: (
 
-    if (err) {
+    (msg?: string | false) => Hapi.Lifecycle.Method<any>
+ ) = (msg) => (
 
-        log.err('Error caught in fail action:', err.message);
-        return err;
+    async (request, h, err?: Error) => {
+
+        if (msg !== false) {
+            await stepper.next(msg || 'Fail action is next');
+        }
+
+        const notFromEvent = !!h;
+
+        let _return: any;
+
+        const mightReturn = (val: any) => {
+
+            if (notFromEvent) {
+
+                _return = val;
+            }
+        }
+
+        if (err) {
+
+            log.err('Error caught in fail action:', err.message);
+
+            mightReturn(err);
+        }
+
+        const boom = request.response as Boom.Boom;
+
+        if (boom.isBoom) {
+
+            log.err('Response is a boom');
+
+            log.bulletFail({
+                method: request.method,
+                path: request.path,
+                msg: boom.message,
+                code: boom.output.statusCode,
+                isServer: boom.isServer,
+                isDeveloper: (boom as any).isDeveloper,
+            })
+
+            mightReturn(request.response);
+        }
+        else {
+
+            mightReturn(h?.continue);
+        }
+
+        return _return;
     }
-
-    const boom = request.response as Boom.Boom;
-
-    if (boom.isBoom) {
-
-        log.err('Response is a boom');
-
-        log.bulletFail({
-            method: request.method,
-            path: request.path,
-            msg: boom.message,
-            code: boom.output.statusCode,
-            isServer: boom.isServer,
-            isDeveloper: (boom as any).isDeveloper,
-        })
-
-        return request.response;
-    }
-
-    return h.continue
-};
+ );
 
 /**
  * Generic return values for the handler
@@ -91,11 +119,14 @@ const ignored = true;
  */
 export const handler: Hapi.Lifecycle.Method = async (request, h) => {
 
+
     if (ignoreExt.has('_handler')) {
 
-        // log.ignore('_handler');
+        log.ignore('_handler');
         return { ignored };
     }
+
+    await stepper.next('Handler call is next');
 
     if (throwErrorOn.has('_handler')) {
 
@@ -150,9 +181,11 @@ export const mkSrvExt: (
 
             if (ignoreExt.has(ext)) {
 
-                // log.ignore(ext);
+                log.ignore(ext);
                 return;
             }
+
+            await stepper.next(`Server extension point ${ext} is next`);
 
             if (throwErrorOn.has(ext)) {
 
@@ -209,9 +242,11 @@ export const mkReqExt: (
 
             if (ignoreExt.has(ext)) {
 
-                // log.ignore(ext);
+                log.ignore(ext);
                 return h.continue;
             }
+
+            await stepper.next(`Request extension point ${ext} is next`);
 
             if (throwErrorOn.has(ext)) {
 
@@ -229,10 +264,11 @@ export const mkReqExt: (
 
             if (store[ext]) {
 
-                return await store[ext]!(req, h);
+                return store[ext]!(req, h);
             }
 
-            return h.continue;
+
+            return h.continue
         }
     ]
 );
@@ -243,7 +279,7 @@ export const mkReqExt: (
  */
 export const makeExtForRoute = (ext: Hapi.ServerRequestExtType) => {
 
-    const method = (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
+    const method = async (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
 
         /**
          * If the store does not have a function for this extension point,
@@ -256,6 +292,8 @@ export const makeExtForRoute = (ext: Hapi.ServerRequestExtType) => {
         // Get the route path and method
         const from = request.route.method + ' ' + request.route.path;
 
+        await stepper.next(`Route extension point ${ext} is next from ${from}`);
+
         // Log the step
         _progress.reqExt(ext, from);
 
@@ -263,7 +301,7 @@ export const makeExtForRoute = (ext: Hapi.ServerRequestExtType) => {
          * If the store has a function for this extension point,
          * we call it
          */
-        return store.routeExt[ext]!(request, h);
+        return await store.routeExt[ext]!(request, h);
     }
 
     return { method }

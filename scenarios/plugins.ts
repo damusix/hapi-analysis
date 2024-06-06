@@ -10,43 +10,8 @@ import {
     throwErrorOn,
     log,
     ignoreExt,
-    inspectAuthScheme,
-    inspectSrvHooks,
-    inspectReqHooks,
-    inspectResponses,
-    inspectRoutes
-} from './helpers';
+} from '../helpers';
 
-given.always('A server is prepared', () => {
-
-    it('adds a custom auth scheme', () => {
-
-        inspectAuthScheme(server);
-    });
-
-    it('adds hooks', () => {
-
-        inspectSrvHooks(server);
-        inspectReqHooks(server);
-        inspectResponses(server);
-    });
-
-    it('adds routes', () => {
-
-        inspectRoutes(server);
-    });
-});
-
-
-given('Pre hooks', async () => {
-
-    it('starts the server', async () => {
-
-        await server.start();
-
-        log.step('server started at', server.info.uri);
-    });
-});
 
 given('Route with no auth', async () => {
 
@@ -65,7 +30,7 @@ given('Route with no auth', async () => {
         log.respond(res.result!);
     });
 
-    const _exts1 = Array.from(reqExts).insert(2, '_handler' as any)
+    const _exts1 = Array.from(reqExts)._insert(2, '_handler' as any)
 
     for (const ext of _exts1) {
 
@@ -81,16 +46,6 @@ given('Route with no auth', async () => {
 });
 
 given('Route with auth', async () => {
-
-    before(async () => {
-
-        // ignoreExt.add('onRequest');
-        // ignoreExt.add('onPreHandler');
-        // ignoreExt.add('_handler');
-        // ignoreExt.add('onPostHandler');
-        // ignoreExt.add('onPreResponse');
-        // ignoreExt.add('onPostResponse');
-    });
 
     after(async () => {
 
@@ -130,6 +85,7 @@ given('Route with auth', async () => {
             log.respond(res.result!);
         });
     }
+
 })
 
 given('Route with auth and validation', async () => {
@@ -308,16 +264,3 @@ given('Route with auth and validation', async () => {
     });
 
 });
-
-// given('R')
-
-given('Post hooks', () => {
-
-    it('stops the server', async () => {
-
-        await server.stop();
-
-        log.step('server stopped');
-    });
-});
-

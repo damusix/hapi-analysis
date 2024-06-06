@@ -1,5 +1,6 @@
-import Hapi from '@hapi/hapi';
-import { failAction, mkReqExt, mkSrvExt } from '../hapi';
+import Hapi, { Lifecycle } from '@hapi/hapi';
+import { mkFailAction, mkReqExt, mkSrvExt } from '../hapi';
+import { stepper } from '..';
 
 /**
  * Server extension points
@@ -49,10 +50,13 @@ export const inspectResponses = (server: Hapi.Server) => {
     /**
      * We add a global fail action to the server. This will be used
      * to test how the server handles validation errors.
-     *
-     * If the test suite is set to throw an error on onPreResponse hook,
-     * then this failAction will be ignored because the previous hook
-     * above would have thrown an error.
      */
-    server.ext('onPreResponse', failAction as Hapi.Lifecycle.Method);
+    server.events.on(
+        'response',
+        (req) => (
+
+            mkFailAction(false)(req, null as any)
+        )
+    );
+
 }

@@ -30,6 +30,7 @@ export const inspectRoutes = (server: Hapi.Server) => {
         options: {
             auth: {
                 strategy: 'test',
+                payload: 'required'
             }
         }
     });
@@ -124,12 +125,12 @@ export const inspectRoutes = (server: Hapi.Server) => {
             },
             ext: {
                 onPreAuth: makeExtForRoute('onPreAuth'),
-                onCredentials: makeExtForRoute('onPreAuth'),
-                onPostAuth: makeExtForRoute('onPreAuth'),
-                onPreHandler: makeExtForRoute('onPreAuth'),
-                onPostHandler: makeExtForRoute('onPreAuth'),
-                onPreResponse: makeExtForRoute('onPreAuth'),
-                onPostResponse: makeExtForRoute('onPreAuth'),
+                onCredentials: makeExtForRoute('onCredentials'),
+                onPostAuth: makeExtForRoute('onPostAuth'),
+                onPreHandler: makeExtForRoute('onPreHandler'),
+                onPostHandler: makeExtForRoute('onPostHandler'),
+                onPreResponse: makeExtForRoute('onPreResponse'),
+                onPostResponse: makeExtForRoute('onPostResponse'),
             }
         }
     });

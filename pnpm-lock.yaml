@@ -14,9 +14,15 @@ dependencies:
   '@hapi/hoek':
     specifier: ^11.0.4
     version: 11.0.4
+  '@types/diff':
+    specifier: ^5.2.1
+    version: 5.2.1
   chalk:
     specifier: ^5.3.0
     version: 5.3.0
+  diff:
+    specifier: ^5.2.0
+    version: 5.2.0
   joi:
     specifier: ^17.13.1
     version: 17.13.1
@@ -496,6 +502,10 @@ packages:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
     dev: false
 
+  /@types/diff@5.2.1:
+    resolution: {integrity: sha512-uxpcuwWJGhe2AR1g8hD9F5OYGCqjqWnBUQFD8gMZsDbv8oPHzxJF6iMO6n8Tk0AdzlxoaaoQhOYlIg/PukVU8g==}
+    dev: false
+
   /@types/node@20.12.11:
     resolution: {integrity: sha512-vDg9PZ/zi+Nqp6boSOT7plNuthRugEKixDv5sFTIpkE89MmNtEArAShI4mxuX2+UrLEe9pxC1vm2cjm9YlWbJw==}
     dependencies:
@@ -572,6 +582,11 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 5.5.0
+    dev: false
+
+  /diff@5.2.0:
+    resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
     dev: false
 
   /esbuild@0.20.2:
